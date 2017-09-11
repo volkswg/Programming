@@ -40,14 +40,14 @@ int main(int argc, char *argv[])
 		//	*fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Small\\matrix2.txt",
 		//	*fileC = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Small\\out.txt";
 
-		char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\matrix1.txt",
+		/*char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\matrix1.txt",
 			*fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\matrix2.txt",
 			*fileC = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\out.txt";
+*/
 
-
-		matrixA = fopen(fileA, "r");
-		matrixB = fopen(fileB, "r");
-		matrixC = fopen(fileC, "wt");
+		matrixA = fopen(argv[1], "r");
+		matrixB = fopen(argv[2], "r");
+		matrixC = fopen(argv[3], "wt");
 
 		fscanf(matrixA, "%d %d", &rowA, &columnA);
 		fscanf(matrixB, "%d %d", &rowB, &columnB);
