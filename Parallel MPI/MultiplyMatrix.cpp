@@ -1,215 +1,247 @@
-#include<mpi.h>
-#include<stdio.h>
-#include<stdlib.h>
+#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char *argv[])
 {
-	double startTime = 0, EndTime = 0;
 	int pid, nproc;
-	MPI_Status status;
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &nproc);
 	MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+	double startTime = 0;
+	double EndTime = 0;
 	startTime = MPI_Wtime();
+	///File pointer Decleare
+	FILE *matrixFileA = NULL;
+	FILE *matrixFileB = NULL;
+	FILE *matrixFileC = NULL;
+	///variable for File read
+	int rowA, columnA, rowB, columnB;
 
-	FILE *matrixA = NULL;
-	FILE *matrixB = NULL;
-	FILE *matrixC = NULL;
+	///array of data
+	double *arrMatrixA = NULL;
+	double *arrMatrixB = NULL;
+	double *arrMatrixC = NULL;
+	///array of data in each process
+	double *arrMatrixALocal = NULL;
+	double *arrMatrixCLocal = NULL;
+	int dataNumA, dataNumB;
 
-	int rowA, columnA, allDataA, rowB , columnB, allDataB ;
-	int checkRemainA, checkRemainB;
-	//int *arrMatrixA = NULL, *arrMatrixB = NULL, *arrMatrixALocal = NULL, *arrMatrixBLocal = NULL, *arrMatrixC = NULL,*arrMatrixCLocal = NULL;
-	double *arrMatrixA = NULL, *arrMatrixB = NULL, *arrMatrixALocal = NULL, *arrMatrixBLocal = NULL, *arrMatrixC = NULL, *arrMatrixCLocal = NULL;
-	///scatterVDeclareVar
-	int *scountA, *displsA, *scountB, *displsB;
-	///rearrange matrixB
-	int ib = 0,countColumnReaded = 0,tmpIB = 0;
+	char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\matrix1.txt";
+	char *fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\matrix2.txt";
+	char *fileC = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\out2.txt";
+
+	//char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Small\\matrix1.txt",
+	//	*fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Small\\matrix2.txt",
+	//	*fileC = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Small\\out.txt";
+
+	//char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Smallest\\A_smallTest.txt";
+	//char *fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Smallest\\B_smallTest.txt";
+	//char *fileC = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Smallest\\out.txt";
+
+	///General Propose
+	int h, i, k;
+
+	int countColumn;
+	int tmpIB;
+	int *scountA = NULL;
+	int *displsA = NULL;
+	int checkRemainRowA;
+	int rowReceive;
+	int *gsRecv = NULL;
+	int *gDispls = NULL;
+	int numDataInC;
+
+	double tempOutput;
+	int offsetB;
+	int offsetA;
+	int writetoarr;
+
+	int dataNumC;
 	///Set ScatterV parameter
 	scountA = (int*)calloc(nproc, sizeof(int));
 	displsA = (int*)calloc(nproc, sizeof(int));
-	scountB = (int*)calloc(nproc, sizeof(int));
-	displsB = (int*)calloc(nproc, sizeof(int));
-
-	///initialize nessesary variable
-	if (pid == 0)
-	{
-		/*char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Smallest\\A_smallTest.txt",
-			*fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Smallest\\B_smallTest.txt";*/
-
-		//char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Small\\matrix1.txt",
-		//	*fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Small\\matrix2.txt",
-		//	*fileC = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Small\\out.txt";
-
-		/*char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\matrix1.txt",
-			*fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\matrix2.txt",
-			*fileC = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\out.txt";
-*/
-
-		matrixA = fopen(argv[1], "r");
-		matrixB = fopen(argv[2], "r");
-		matrixC = fopen(argv[3], "wt");
-
-		fscanf(matrixA, "%d %d", &rowA, &columnA);
-		fscanf(matrixB, "%d %d", &rowB, &columnB);
-
-		MPI_Bcast(&rowA, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		MPI_Bcast(&rowB, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		MPI_Bcast(&columnA, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		MPI_Bcast(&columnB, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-		allDataA = rowA*columnA;
-		allDataB = rowB*columnB;
-
-		if (columnA != rowB)
-		{
-			printf("Error can't operate");
-		}
-		else
-		{
-			///start scan data
-			//arrMatrixA = (int*)calloc(allDataA, sizeof(int));
-			//arrMatrixB = (int*)calloc(allDataB, sizeof(int));
-			arrMatrixA = (double*)calloc(allDataA, sizeof(double));
-			arrMatrixB = (double*)calloc(allDataB, sizeof(double));
-
-			for (int i = 0; i < allDataA; i++)
-			{
-				if (i % columnA == 0)printf("");
-				fscanf(matrixA, "%lf", &arrMatrixA[i]);
-				//printf("%.2lf ", arrMatrixA[i]);
-			}
-
-			tmpIB = ib;
-			while (!feof(matrixB))
-			{
-				fscanf(matrixB, "%lf", &arrMatrixB[ib]);
-				ib += rowB;
-				countColumnReaded++;
-				if (countColumnReaded == columnB)
-				{
-					tmpIB++;
-					ib = tmpIB;
-					countColumnReaded = 0;
-				}
-			}
-
-			fclose(matrixA);
-			fclose(matrixB);
-			//arrMatrixC = (int*)calloc(rowA*columnB, sizeof(int));
-			arrMatrixC = (double*)calloc(rowA*columnB, sizeof(double));
-
-		}
-	}
-
-	if (pid != 0)
-	{
-		MPI_Bcast(&rowA, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		MPI_Bcast(&rowB, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		MPI_Bcast(&columnA, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		MPI_Bcast(&columnB, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		allDataA = rowA*columnA;
-		allDataB = rowB*columnB;
-	}
-	
-	checkRemainA = (rowA % nproc)*columnA;
-	///set sendCount , Displacement
-	for (int i = 0; i < nproc; i++)
-	{
-		displsA[i] = ((rowA / nproc)*columnA) * i;
-		scountA[i] = (rowA / nproc)*columnA;
-		scountB[i] = allDataB;
-		displsB[i] = 0;
-		if (checkRemainA != 0 )
-		{
-			scountA[nproc-1] += checkRemainA;
-		}
-	}
-
-	int *gsRecv, *gDispls;
+	///variable for gatherv
 	gsRecv = (int*)calloc(nproc, sizeof(int));
 	gDispls = (int*)calloc(nproc, sizeof(int));
-	for (int i = 0; i<nproc; i++)
+	///Master read File
+	if (pid == 0)
+	{
+		//matrixFileA = fopen(argv[1], "r");
+		//matrixFileB = fopen(argv[2], "r");
+		//matrixFileC = fopen(argv[3], "w");
+		matrixFileA = fopen(fileA, "r");
+		matrixFileB = fopen(fileB, "r");
+		matrixFileC = fopen(fileC, "w");
+		fscanf(matrixFileA, "%d %d", &rowA, &columnA);
+		fscanf(matrixFileB, "%d %d", &rowB, &columnB);
+	}
+	MPI_Bcast(&rowA, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	//MPI_Bcast(&rowB, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&columnA, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&columnB, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	dataNumA = rowA * columnA;
+	dataNumB = columnA * columnB;
+	arrMatrixA = (double*)calloc(dataNumA, sizeof(double));
+	arrMatrixB = (double*)calloc(dataNumB, sizeof(double));
+	if (pid == 0) {
+		///Read data From file matrix A
+		for (i = 0; i < dataNumA; i++)
+		{
+			///pirnt Check matrix A
+			fscanf(matrixFileA, "%lf", &arrMatrixA[i]);
+			//if (i % columnA == 0)printf("\n");
+			//printf("%.2lf ", arrMatrixA[i]);
+		}
+		fclose(matrixFileA);
+
+		//printf("\n");
+		///Read data From file matrix B
+		i = 0;
+		tmpIB = i;
+		countColumn = 0;
+		for (k = 0; k < dataNumB; k++)
+		{
+			fscanf(matrixFileB, "%lf", &arrMatrixB[i]);
+			//printf("%.2lf", arrMatrixB[i]);
+			i = i + columnA;
+			countColumn++;
+			if (countColumn == columnB)
+			{
+				tmpIB++;
+				i = tmpIB;
+				countColumn = 0;
+			}
+		}
+		///pirnt Check matrix B
+		//printf("Start Here\n");
+		//for (i = 0; i < dataNumB; i++)
+		//{
+		//	if (i % 100 == 0)printf("\n");
+		//	printf("%.2lf ", arrMatrixB[i]);
+		//}
+		///set number of element in array matrix C
+		arrMatrixC = (double*)calloc(rowA*columnB, sizeof(double));
+		fclose(matrixFileB);
+	}
+	///End Master Read File==================s===============================
+
+	dataNumA = rowA*columnA;
+	dataNumB = columnA*columnB;
+	//arrMatrixB = (double*)calloc(dataNumB, sizeof(double));
+
+	///Set Scatter Value
+	checkRemainRowA = rowA % nproc;
+	//printf("remain %d\n", checkRemainRowA);
+	///all Row Recieve has Set====================
+	///Set number of element will Send
+	for (i = 0; i < nproc; i++)
+	{
+		rowReceive = rowA / nproc;
+		scountA[i] = rowReceive;
+		if (i < checkRemainRowA)
+		{
+			if (i%nproc == i)
+			{
+				scountA[i]++;
+			}
+		}
+		scountA[i] = scountA[i] * columnA;
+
+		if (i != 0) {
+			displsA[i] = scountA[i - 1] + displsA[i - 1];
+		}
+		else {
+			displsA[i] = 0;
+		}
+		//printf("from  Proc #%d  displs %d \t recieve %d\n", pid, displsA[i], scountA[i]);
+	}
+
+	for (i = 0; i<nproc; i++)
 	{
 		gsRecv[i] = (scountA[i] / columnA)*columnB;
-		gDispls[i] = ((scountA[pid] / columnA)*columnB)*i;
+		//gDispls[i] = ((scountA[pid] / columnA)*columnB)*i;
+		if (i != 0) {
+			gDispls[i] =  gsRecv[i - 1] + gDispls[i - 1];
+		}
+		else {
+			gDispls[i] = 0;
+		}
+		//printf("from PID#%d [%d]gRecv : %d %d\n", pid,i, gDispls[i],gsRecv[i]);
 	}
-	///set sendCount , Displacement
-	//arrMatrixALocal = (int*)calloc(scountA[pid], sizeof(int));
-	//arrMatrixBLocal = (int*)calloc(scountB[pid], sizeof(int));
-	arrMatrixALocal = (double*)calloc(scountA[pid], sizeof(double));
-	arrMatrixBLocal = (double*)calloc(scountB[pid], sizeof(double));
-	MPI_Scatterv(arrMatrixA, scountA, displsA, MPI_DOUBLE, arrMatrixALocal, scountA[pid], MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	MPI_Scatterv(arrMatrixB, scountB, displsB, MPI_DOUBLE, arrMatrixBLocal, allDataB, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-	//printf("From pid #%d\n:A = %d B = %d\n==========================================================\n", pid, scountA[pid],allDataB);
-	int dataCountinC = 0;
-	//printf("From pid #%d:A=%d:B=%d \n==========================================================\n", pid, scountA[pid], scountB[pid]);
-	for (int i = 0; i < scountA[pid]; i++)
+	///reassign dataNumB
+	dataNumB = columnA * columnB;
+	///calculate element of array C
+	numDataInC = (dataNumB / columnA)*(scountA[pid] / columnA);
+	//printf("CountData = %d\n", numDataInC);
+	///Ready to scatterV
+	arrMatrixALocal = (double*)calloc(scountA[pid], sizeof(double));
+	arrMatrixCLocal = (double*)calloc(numDataInC, sizeof(double));
+
+	MPI_Scatterv(arrMatrixA, scountA, displsA, MPI_DOUBLE, arrMatrixALocal, scountA[pid], MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&arrMatrixB[0], dataNumB, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+
+	//printf("From pid #%d:\nA = %d\n==========================================================", pid, scountA[pid]);
+	/*for (i = 0; i < scountA[pid]; i++)
 	{
-		//if (i%columnA == 0)printf("\n");
-		//printf("%d ", arrMatrixALocal[i]);
+	if (i%columnA == 0)printf("\n");
+	printf("%.2lf ", arrMatrixALocal[i]);
 	}
-	//printf("\n-----------------\n");
-	for (int i = 0; i < allDataB; i++)
+	printf("\n-----------------\n");*/
+	/*for (i = 0; i < dataNumB; i++)
 	{
-		//if (i%rowB == 0)printf("\n");
-		//printf("%d ", arrMatrixBLocal[i]);
+	if (i% rowB == 0)printf("\n");
+	printf("%.2lf ", arrMatrixB[i]);
 	}
-	//printf("\n==========================================================\n");
-	dataCountinC = (allDataB / columnA)*(scountA[pid] / columnA);
-	arrMatrixCLocal = (double*)calloc(dataCountinC, sizeof(double));
-	//printf("------>%d", (scountA[pid] / columnA));
-	for (int i = 0; i < dataCountinC; i++)
-	{
-		//arrMatrixCLocal[i] = i;
-	}
-	//
-	int tempOutput = 0;
-	int offsetB = 0,offsetA = 0,writetoarr = 0;
-	for (int h = 0; h < (scountA[pid] / columnA); h++)
+	printf("\n==========================================================\n");*/
+	tempOutput = 0;
+	offsetB = 0;
+	offsetA = 0;
+	writetoarr = 0;
+	for (h = 0; h < (scountA[pid] / columnA); h++)
 	{
 		//printf("\n");
-		for (int i = 0; i < columnB; i++)
+		for (i = 0; i < columnB; i++)
 		{
 			//printf(" ");
 
-			for (int k = 0; k < columnA; k++)
+			for (k = 0; k < columnA; k++)
 			{
-				tempOutput += (arrMatrixALocal[k + offsetA] * arrMatrixBLocal[k + offsetB]);
+				tempOutput = tempOutput + (arrMatrixALocal[k + offsetA] * arrMatrixB[k + offsetB]);
 			}
 			arrMatrixCLocal[writetoarr] = tempOutput;
+			//printf("%.2lf ", arrMatrixCLocal[writetoarr]);
 			writetoarr++;
-			//printf("%d ", tempOutput);
 			tempOutput = 0;
-			offsetB += columnA;
+			offsetB = offsetB + columnA;
 		}
 		offsetB = 0;
-		offsetA += columnA;
+		offsetA = offsetA + columnA;
 	}
-
-	MPI_Gatherv(arrMatrixCLocal, dataCountinC, MPI_DOUBLE, arrMatrixC, gsRecv, gDispls, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	for (int i = 0; i < dataCountinC; i++)
-	{
-		//if (i % 15 == 0)printf("\n");
-		//printf("%d ", arrMatrixCLocal[i]);
-	}
-	//printf("\n\n");
+	MPI_Gatherv(arrMatrixCLocal, numDataInC, MPI_DOUBLE, arrMatrixC, gsRecv, gDispls, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	dataNumC = rowA * columnB;
 	if (pid == 0)
 	{
-		fprintf(matrixC, "%d %d", rowA, columnB);
-		for (int i = 0; i < rowA*columnB; i++)
+		fprintf(matrixFileC, "%d %d\n", rowA, columnB);
+		for (i = 0; i < dataNumC; i++)
 		{
-			if (((i % columnB) == 0))
+
+			fprintf(matrixFileC, "%.2f", arrMatrixC[i]);
+			if ((i + 1) % (columnB) == 0)
 			{
-				
-				fprintf(matrixC,"\n");
+				fprintf(matrixFileC, "\n");
 			}
-			fprintf(matrixC, "%.2lf ", arrMatrixC[i]);
+			else {
+				fprintf(matrixFileC, " ");
+			}
 		}
-		fclose(matrixC);
-	EndTime = MPI_Wtime();
-	printf("Timings : %lf Sec", EndTime - startTime);
+		fclose(matrixFileC);
 	}
+		EndTime = MPI_Wtime();
+		printf("proc %d Timings : %lf Sec",pid,EndTime - startTime);
 	MPI_Finalize();
 	return 0;
 }
