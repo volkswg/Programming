@@ -73,7 +73,6 @@ preprocess:
 	li		$t9,256 	#$9 is i (255 is for all ascii)
 	la 		$t0 , shiftVal	#load address of shiftVal[0]
 loopSetAll:
-	
 	sw		$v1,($t0)			#shiftVal[i] = strlen(needle)
 	addi	$t0,$t0,4			#address next arr
 	addi	$t9,$t9,-1			#i--
@@ -82,7 +81,7 @@ loopSetAll:
 	j		loopSetAll
 setNeedle:	
 	addi 	$t9,$zero,0 		#$t9 = 0;i = 0
-	la 		$t0 , inNeedle 		#&inNeedle
+	la 		$t0 , inNeedle 		#&inNeedle[0]
 	addi	$t8,$v1,-1			#$t8 = strlen(needle)-1
 	
 loopsetSllNeedle:
@@ -91,7 +90,7 @@ loopsetSllNeedle:
 	lb		$t1,0($t0)				#load asciival
 	
 	sll 	$t3,$t1,2				#$t3 = asciival *4
-	add		$t5,$t3,$t2 			#$t5 address of shiftVal[inWord[i]]
+	add		$t5,$t3,$t2 			#$t5 = address of shiftVal[inWord[i]]
 	
 	sub		$t4,$v1,$t9				
 	addi	$t4,$t4,-1			#$t4 = strLen(needle)-i-1
@@ -118,20 +117,20 @@ endwh:
     jr      $ra 					#return to $ra
 
 searchFunc:
-	la		$t0,inWord
+	la		$t0,inWord	#$inWord[0]
 	jal		strlen		#call string lenght function
 	sw		$v1,lenWord	#save strLen in lenWord
 	
 	la		$t0,lenWord
-	lw		$s7,($t0)		#s7 = lenWord
+	lw		$s7,($t0)		#s7 = strlen(Word)
 	la		$t1,lenNeedle
-	lw		$s6,($t1)		#$s6 = lenNeedle
+	lw		$s6,($t1)		#$s6 = strlen(Needle)
 	addi 	$t8,$zero,0		#$t8 = skipword 
 	addi 	$v1,$zero,0 	#$v1 = matchfound 
 whileSearch1:
 	sub		$t3,$s7,$t8		#$t3 = strlen(word) - skipWord
+	blt		$t3,$s6,endwhileS1	#if strlen(Needle) < (strlen(word) - skipWord)
 	addi	$t9,$s6,-1		#$t9 = i = strlen(needle)-1
-	blt		$t3,$s6,endwhileS1
 	
 whileSearch2:
 	la		$t0,inWord	
@@ -176,7 +175,6 @@ endwhileS2:
 
 	la		$t0,inWord		#load address inWord[0]
 	
-	
 	add		$t0,$t0,$t5		#$t0 = &word[skipWord+strlen(needle) - 1]
 	lb		$s1,0($t0)		#$s1 = word[skipWord+strlen(needle) - 1]
 	
@@ -201,7 +199,7 @@ endwhileS2:
 	j		whileSearch1
 endwhileS1:
 	
-		#print \n --------------
+	#print \n --------------
 	la 		$a0,enterPrint
 	li 		$v0,4
 	syscall
