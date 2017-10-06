@@ -1,0 +1,182 @@
+.data
+	inWord: 	.space 1024
+	inNeedle: 	.space 255
+	askWord:  	.asciiz "Enter your string : "
+	askNeedle: 	.asciiz "Enter your pattern : "
+	pWord:  	.asciiz "Your word : "
+	pNeedle: 	.asciiz "Your pattern : "
+	enterPrint: .asciiz "\n"
+	strMatchprt: .asciiz " Times(s) Match"
+	readfileComplete: .asciiz "Read File Success\n"
+	filename: 	.asciiz "C:\Users\DELL\Desktop\data.txt" #file name
+	shiftVal: 	.word 256
+	lenNeedle:	.word 1
+	lenWord:	.word 1
+	
+.text
+
+main:
+	#open a file for writing
+	li   $v0, 13       # system call for open file
+	la   $a0, filename      # board file name
+	li   $a1, 0        # Open for reading
+	li   $a2, 0
+	syscall            # open a file (file descriptor returned in $v0)
+	move $s6, $v0      # save the file descriptor 
+
+	#read from file
+	li   $v0, 14       # system call for read from file
+	move $a0, $s6      # file descriptor 
+	la   $a1, inWord   # address of buffer to which to read
+	li   $a2, 1024     # hardcoded buffer length
+	syscall            # read from file
+
+	# Close the file 
+	li   $v0, 16       # system call for close file
+	move $a0, $s6      # file descriptor to close
+	syscall            # close file
+	
+	la		$a0,readfileComplete
+	li		$v0,4
+	syscall
+	
+	la		$a0,inWord
+	li		$v0,4
+	syscall
+	#print \n --------------
+	la 		$a0,enterPrint
+	li 		$v0,4
+	syscall
+	#print \n --------------
+	#input needle
+	la 		$a0,askNeedle	#Load address of [askNeedle] 
+	li 		$v0,4		#function print string
+	syscall
+	li 		$v0,8		#Function read string
+	la 		$a0,inNeedle#load address of [inNeedle]
+	li 		$a1,255 	#set array of char
+	move	$s1,$a0		#save address [inNeedle] to $s1
+	syscall
+	
+preprocess: 
+	la		$t0,inNeedle
+	jal		strlen		#call string lenght function
+	sw		$v1,lenNeedle	#save strLen in lenNeedle
+	li		$t9,256 	#$9 is i (255 is for all ascii)
+	la 		$t0 , shiftVal	#load address of shiftVal[0]
+loopSetAll:
+	sw		$v1,($t0)			#shiftVal[i] = strlen(needle)
+	addi	$t0,$t0,4			#address next arr
+	addi	$t9,$t9,-1			#i--
+	
+	beq 	$t9,$zero,setNeedle	#if $t9 == 0 --> setNeedle
+	j		loopSetAll
+setNeedle:	
+	addi 	$t9,$zero,0 		#$t9 = 0;i = 0
+	la 		$t0 , inNeedle 		#&inNeedle[0]
+	addi	$t8,$v1,-1			#$t8 = strlen(needle)-1
+	
+loopsetSllNeedle:
+	la		$t2 , shiftVal			#load address of shiftVal[0]
+	beq 	$t9,$t8,endllopSllval	#check $t9 == $t8
+	lb		$t1,0($t0)				#load asciival
+	
+	sll 	$t3,$t1,2				#$t3 = asciival *4
+	add		$t5,$t3,$t2 			#$t5 = address of shiftVal[inWord[i]]
+	
+	sub		$t4,$v1,$t9				
+	addi	$t4,$t4,-1			#$t4 = strLen(needle)-i-1
+	
+	sw		$t4,($t5)			#shiftVal[i] = $s4
+	
+	addi	$t0,$t0,1			#move to next char
+	addi	$t9,$t9,1			#i++
+	
+	j		loopsetSllNeedle
+	
+endllopSllval:
+	j		searchFunc
+
+strlen:
+	li      $v1, 0                  #$v1;lenght = 0
+strlenwhile:  	
+	lb      $t1, 0($t0)             #$t1 = inNeedle[i];i=0
+	addi 	$t1,$t1,-10				# calculate for \n (asciiz = 10)
+	ble     $t1,$zero, endwh        # if char == NULL --> endwh
+    addi    $v1, $v1, 1             # lenght++
+    addi   	$t0, $t0, 1             # i++
+    j       strlenwhile				#loop
+endwh:
+    jr      $ra 					#return to $ra
+
+searchFunc:
+	la		$t0,inWord	#$inWord[0]
+	jal		strlen		#call string lenght function
+	sw		$v1,lenWord	#save strLen in lenWord
+	
+	la		$t0,lenWord
+	lw		$s7,($t0)		#s7 = strlen(Word)
+	la		$t1,lenNeedle
+	lw		$s6,($t1)		#$s6 = strlen(Needle)
+	addi 	$t8,$zero,0		#$t8 = skipword 
+	addi 	$v1,$zero,0 	#$v1 = matchfound 
+whileSearch1:
+	sub		$t3,$s7,$t8		#$t3 = strlen(word) - skipWord
+	blt		$t3,$s6,endwhileS1	#if strlen(Needle) < (strlen(word) - skipWord)
+	addi	$t9,$s6,-1		#$t9 = i = strlen(needle)-1
+	
+whileSearch2:
+	la		$t0,inWord	
+	add  	$t7,$t8,$t9		#$t7 = skipWord+i
+	la		$t4,inNeedle	
+	
+	add		$t0,$t0,$t7		#$t0 &inWord[skipWord + i]
+	add 	$t4,$t9,$t4		#$t4 &inNeedle[i]
+	
+	lb		$t1,0($t0)		#$t1 = inWord[skipWord + i]
+	lb		$t2,0($t4)		#$t2 = inNeedle[i]
+	
+	bne		$t1,$t2,endwhileS2	#inWord[skipWord + i] != inNeedle(i) -> endwhileS2
+
+	bne 	$t9,$zero,minusI	#if	$t9 != 0 -> minusI ; $t9 is i
+	addi	$v1,$v1,1			#else $v1++ ; matchtime++
+	
+minusI:
+	addi	$t9,$t9,-1				#i--
+	blt		$t9,$zero,endwhileS2	#if i < 0 -->endwhileS2
+	j		whileSearch2
+	
+endwhileS2:
+	add		$t5,$t8,$s6		#$t5 = skipWord + strLen(needle)
+	addi	$t5,$t5,-1		#$t5 = skipWord + strLen(needle)-1
+
+	la		$t0,inWord		#load address inWord[0]
+	
+	add		$t0,$t0,$t5		#$t0 = &word[skipWord+strlen(needle) - 1]
+	lb		$s1,0($t0)		#$s1 = word[skipWord+strlen(needle) - 1]
+	
+	la		$t0,shiftVal
+	sll		$s1,$s1,2	
+	
+	add		$t0,$s1,$t0		#$t0 = &shiftValue[word[skipWord+strlen(needle) - 1]]
+	lw		$t1,0($t0)		#$t1 = shiftValue[word[skipWord+strlen(needle) - 1]]
+	add		$t8,$t8,$t1		#skipWord += shiftValue[word[skipWord+strlen(needle) - 1]];
+	
+	j		whileSearch1
+endwhileS1:
+	
+	#print \n --------------
+	la 		$a0,enterPrint
+	li 		$v0,4
+	syscall
+	#print \n --------------
+	move	$a0,$v1
+	li		$v0,1
+	syscall
+	
+	la		$a0,strMatchprt
+	li		$v0,4
+	syscall
+end:
+	li	$v0,10
+	syscall 
