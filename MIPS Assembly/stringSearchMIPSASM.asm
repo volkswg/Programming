@@ -1,4 +1,3 @@
-
 .data
 	inWord: 	.space 255
 	inNeedle: 	.space 255
@@ -35,37 +34,6 @@ main:
 	move	$s1,$a0		#save address [inNeedle] to $s1
 	syscall
 	
-	# #print input
-	# la		$a0,pWord	#load address of [pWord]
-	# li		$v0,4		#print string
-	# syscall
-	
-
-	# #la		$a0,buffer
-	# move	$a0,$s0		#load address of [pWord]
-	# li 		$v0,4		#print string
-	# syscall	
-	
-	# #acess char in string
-	# la $t2, pWord 		#load address of[pWord]
-	# lb $a0, 0($t2)		#load byte of [pword] offset 1 pword[0]
-	# li $v0, 1			#print char
-	# syscall
-	
-	# #print \n --------------
-	# la 		$a0,enterPrint
-	# li 		$v0,4
-	# syscall
-	# #print \n --------------
-	
-	# la		$a0,pNeedle	#load address of [pNeedle]
-	# li		$v0,4		#print string
-	# syscall
-	# #la		$a0,buffer
-	# move	$a0,$s1		#load address of [word]
-	# li 		$v0,4		#print string
-	# syscall	
-	
 preprocess: 
 	la		$t0,inNeedle
 	jal		strlen		#call string lenght function
@@ -101,6 +69,7 @@ loopsetSllNeedle:
 	addi	$t9,$t9,1			#i++
 	
 	j		loopsetSllNeedle
+	
 endllopSllval:
 	j		searchFunc
 
@@ -137,27 +106,11 @@ whileSearch2:
 	add  	$t7,$t8,$t9		#$t7 = skipWord+i
 	la		$t4,inNeedle	
 	
-	
 	add		$t0,$t0,$t7		#$t0 &inWord[skipWord + i]
 	add 	$t4,$t9,$t4		#$t4 &inNeedle[i]
 	
 	lb		$t1,0($t0)		#$t1 = inWord[skipWord + i]
 	lb		$t2,0($t4)		#$t2 = inNeedle[i]
-	
-	# #check inWord[skipWord + i] == inNeedle[i]===========
-	# move	$a0,$t1
-	# li		$v0,11
-	# syscall
-	
-	# move	$a0,$t2
-	# li		$v0,11
-	# syscall
-	# #print \n --------------
-	# la 		$a0,enterPrint
-	# li 		$v0,4
-	# syscall
-	# #print \n --------------
-	# #=====================================================
 	
 	bne		$t1,$t2,endwhileS2	#inWord[skipWord + i] != inNeedle(i) -> endwhileS2
 
@@ -177,17 +130,6 @@ endwhileS2:
 	
 	add		$t0,$t0,$t5		#$t0 = &word[skipWord+strlen(needle) - 1]
 	lb		$s1,0($t0)		#$s1 = word[skipWord+strlen(needle) - 1]
-	
-	# #show mismatch Character =============
-	# move	$a0,$s1
-	# li		$v0,11
-	# syscall
-	# #print \n --------------
-	# la 		$a0,enterPrint
-	# li 		$v0,4
-	# syscall
-	# #print \n --------------
-	# #=====================================
 	
 	la		$t0,shiftVal
 	sll		$s1,$s1,2	
@@ -214,37 +156,3 @@ endwhileS1:
 end:
 	li	$v0,10
 	syscall 
-	
-test:
-	li		$t9,256
-	la 		$t0 , shiftVal
-	
-	la		$t5,lenNeedle
-	lw		$t6,($t5)
-	move 	$a0,$t6
-	li		$v0,1
-	syscall
-	
-forloopCheck:
-	lw		$t1,($t0)
-	
-	move 	$a0,$t0
-	li		$v0,1
-	syscall
-	
-	move 	$a0,$t1
-	li		$v0,1
-	syscall
-	
-	#print \n --------------
-	la 		$a0,enterPrint
-	li 		$v0,4
-	syscall
-	#print \n --------------
-	
-	
-	addi 	$t0,$t0,4
-	addi	$t9,$t9,-1
-	beq 	$t9,$zero,end
-	
-	j 	forloopCheck

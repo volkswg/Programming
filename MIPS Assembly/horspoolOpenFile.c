@@ -48,7 +48,7 @@ int main()
 	if(textFile != NULL)
 	{
 		printf("Read File Already\n");
-		fscanf(textFile,"%s",myString);
+		fscanf(textFile,"%[^\n]%*c",myString);
 		printf("Enter Your Pattern : ");
 		fgets (buffer, sizeof(buffer), stdin);
 		sscanf(buffer,"%s",pattern);

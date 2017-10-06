@@ -25,7 +25,6 @@ int searchInWord(char *word,char *needle,int *shiftValue)
 		{
 			if(i == 0)
 			{
-				//printf("Found %d\n",skipWord);
 				timeMatch++;
 			}
 			i--;
@@ -45,10 +44,10 @@ int main()
 	int timeMatch;
 	printf("Your Word : ");
 	fgets (buffer, sizeof(buffer), stdin);
-	sscanf(buffer,"%s",myString);
+	sscanf(buffer,"%[^\n]%*c",myString);
 	printf("Needle : ");
 	fgets (buffer, sizeof(buffer), stdin);
-	sscanf(buffer,"%s",pattern);
+	sscanf(buffer,"%[^\n]%*c",pattern);
 	
 	preprocessing(pattern,chrShiftValue);
 	
