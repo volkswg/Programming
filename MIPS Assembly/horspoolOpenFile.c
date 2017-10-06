@@ -51,7 +51,7 @@ int main()
 		fscanf(textFile,"%[^\n]%*c",myString);
 		printf("Enter Your Pattern : ");
 		fgets (buffer, sizeof(buffer), stdin);
-		sscanf(buffer,"%s",pattern);
+		sscanf(buffer,"%[^\n]%*c",pattern);
 		
 		preprocessing(pattern,chrShiftValue);
 		
