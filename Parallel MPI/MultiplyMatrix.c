@@ -4,6 +4,7 @@
 
 int main(int argc, char *argv[])
 {
+	
 	int pid, nproc;
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &nproc);
@@ -11,11 +12,12 @@ int main(int argc, char *argv[])
 	double startTime = 0;
 	double EndTime = 0;
 	startTime = MPI_Wtime();
-	///File pointer Decleare
+	///File pointer Declare
 	FILE *matrixFileA = NULL;
 	FILE *matrixFileB = NULL;
 	FILE *matrixFileC = NULL;
-	///variable for File read
+	
+	///matrix size var
 	int rowA, columnA, rowB, columnB;
 
 	///array of data
@@ -26,22 +28,14 @@ int main(int argc, char *argv[])
 	double *arrMatrixALocal = NULL;
 	double *arrMatrixCLocal = NULL;
 	int dataNumA, dataNumB;
+	
+	///string contain the directory of file 
+	char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\Medium\\matrix1.txt";
+	char *fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\Medium\\matrix2.txt";
+	char *fileC = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\Medium\\out2.txt";
 
-	char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\matrix1.txt";
-	char *fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\matrix2.txt";
-	char *fileC = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Medium\\out2.txt";
-
-	//char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Small\\matrix1.txt",
-	//	*fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Small\\matrix2.txt",
-	//	*fileC = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Small\\out.txt";
-
-	//char *fileA = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Smallest\\A_smallTest.txt";
-	//char *fileB = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Smallest\\B_smallTest.txt";
-	//char *fileC = "C:\\Users\\DELL\\Desktop\\KMUTT\\CPE374 - Paralell Computing\\Homework\\MatrixSet\\MatrixSet\\Smallest\\out.txt";
-
-	///General Propose
+	///General Propose var
 	int h, i, k;
-
 	int countColumn;
 	int tmpIB;
 	int *scountA = NULL;
@@ -114,18 +108,10 @@ int main(int argc, char *argv[])
 				countColumn = 0;
 			}
 		}
-		///pirnt Check matrix B
-		//printf("Start Here\n");
-		//for (i = 0; i < dataNumB; i++)
-		//{
-		//	if (i % 100 == 0)printf("\n");
-		//	printf("%.2lf ", arrMatrixB[i]);
-		//}
-		///set number of element in array matrix C
 		arrMatrixC = (double*)calloc(rowA*columnB, sizeof(double));
 		fclose(matrixFileB);
 	}
-	///End Master Read File==================s===============================
+	///End Master Read File==================================================
 
 	dataNumA = rowA*columnA;
 	dataNumB = columnA*columnB;
