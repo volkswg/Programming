@@ -1,0 +1,16 @@
+#restart_btt{
+	-fx-background-color: #08b597;
+	-fx-font: 15 arial;
+	-fx-font-weight: bold;
+	-fx-text-fill: #ffffff;
+}
+#restart_btt:pressed{
+	-fx-background-color: #85f1de;
+	-fx-text-fill: #ffffff;
+}
+
+#result_label{
+	-fx-font: 25 arial;
+	-fx-font-weight: bold;
+	-fx-text-fill: #95c000;
+}
