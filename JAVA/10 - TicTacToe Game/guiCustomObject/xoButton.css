@@ -1,8 +1,0 @@
-.button{
-	-fx-background-radius: 0;
-	-fx-background-color: #e5e5e5;
-	-fx-font: 100 arial;
-}
-.button:disabled{
-	-fx-opacity:1;
-}
